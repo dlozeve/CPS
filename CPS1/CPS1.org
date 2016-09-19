@@ -1,0 +1,217 @@
+#+TITLE: The Cox-Rubinstein Model
+#+AUTHOR: Dimitri Lozeve
+#+EMAIL: dimitri.lozeve@polytechnique.edu
+
+#+PROPERTY: header-args :tangle yes
+
+#+BEGIN_SRC ipython :session :exports both
+  import numpy as np
+  import scipy.stats as stats
+  import matplotlib.pyplot as plt
+  %matplotlib inline
+  plt.style.use('ggplot')
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  def Sn(S0, T, n, b, sigma, j):
+      h = T/n
+      u = np.exp(b*h + sigma*np.sqrt(h))
+      d = np.exp(b*h - sigma*np.sqrt(h))
+      s = np.zeros(j+1)
+      for i in range(0,j):
+          s[i] = S0 * u**(j-i) * d ** i
+      return s
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  Sn(100,1,50,0.05,0.3,50)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+array([ 876.98556222,  805.64058264,  740.09969646,  679.89072608,
+        624.57990677,  573.76876162,  527.09123083,  484.21103449,
+        444.81924988,  408.63208595,  375.38883876,  344.85001328,
+        316.795598  ,  291.02347991,  267.3479884 ,  245.59855763,
+        225.61849771,  207.26386589,  190.40242949,  174.91271332,
+        160.68312449,  147.61114847,  135.60261056,  124.57099738,
+        114.43683367,  105.12710964,   96.57475506,   88.71815601,
+         81.50071105,   74.87042337,   68.77952626,   63.18413894,
+         58.04395044,   53.32192919,   48.98405624,   44.99908016,
+         41.33829189,   37.97531795,   34.88593039,   32.04787228,
+         29.44069732,   27.0456226 ,   24.84539323,   22.82415805,
+         20.96735543,   19.26160837,   17.69462812,   16.25512565,
+         14.93273032,   13.71791518,    0.        ])
+#+end_example
+
+
+#+BEGIN_SRC ipython :session  :exports both
+  def Payoffn(S0, T, n, b, sigma, K):
+      s = Sn(S0, T, n, b, sigma, n)
+      return np.maximum(s - K*np.ones(n+1), 0)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  Payoffn(100,1,50,0.05,0.3,80)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+array([ 796.98556222,  725.64058264,  660.09969646,  599.89072608,
+        544.57990677,  493.76876162,  447.09123083,  404.21103449,
+        364.81924988,  328.63208595,  295.38883876,  264.85001328,
+        236.795598  ,  211.02347991,  187.3479884 ,  165.59855763,
+        145.61849771,  127.26386589,  110.40242949,   94.91271332,
+         80.68312449,   67.61114847,   55.60261056,   44.57099738,
+         34.43683367,   25.12710964,   16.57475506,    8.71815601,
+          1.50071105,    0.        ,    0.        ,    0.        ,
+          0.        ,    0.        ,    0.        ,    0.        ,
+          0.        ,    0.        ,    0.        ,    0.        ,
+          0.        ,    0.        ,    0.        ,    0.        ,
+          0.        ,    0.        ,    0.        ,    0.        ,
+          0.        ,    0.        ,    0.        ])
+#+end_example
+
+#+BEGIN_SRC ipython :session  :exports both
+  def Calln(S0, T, n, r, b, sigma, K):
+      h = T/n
+      u = np.exp(b*h + sigma*np.sqrt(h))
+      d = np.exp(b*h - sigma*np.sqrt(h))
+      p = (np.exp(r*h) - d) / (u - d)
+
+      a = np.zeros((n+1,n+1))
+      a[n] = Payoffn(S0, T, n, b, sigma, K)
+      j = n-1
+      while j >= 0:
+          for i in range(0,j+1):
+              a[j,i] = np.exp(-r * h) * (p * a[j+1,i] + (1-p) * a[j+1,i+1])
+          j -= 1
+      return a[0,0]
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  Calln(100,1,50,0.05,0.05,0.3,80)
+#+END_SRC
+
+#+RESULTS:
+: 26.462768815881024
+
+#+BEGIN_SRC ipython :session  :exports both
+  def Deltan(S0, T, n, r, b, sigma, K, j):
+      h = T/n
+      u = np.exp(b*h + sigma*np.sqrt(h))
+      d = np.exp(b*h - sigma*np.sqrt(h))
+      p = (np.exp(r*h) - d) / (u - d)
+
+      B = np.zeros((n+1,n+1))
+      theta = np.zeros((n+1,n+1))
+      B[n] = Payoffn(S0, T, n, b, sigma, K)
+      k = n-1
+      while k >= j:
+          for i in range(0,j):
+              B[k,i] = np.exp(-r * h) * (p * B[k+1,i] + (1-p) * B[k+1,i+1])
+              theta[k,i] = (B[k+1,i+1] - B[k+1,i]) / (Sn(S0, T, n, b, sigma, k)[i] * (u-d))
+          k -= 1
+      return theta[j]
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  Deltan(100,1,50,0.05,0.05,0.3,80,1)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+array([ -2.11929790e-13,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+         0.00000000e+00,   0.00000000e+00,   0.00000000e+00])
+#+end_example
+
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS1/callprices.png :exports both
+  K = np.arange(80,121,1)
+  callprices = np.zeros(41)
+  for i in range(0,41):
+      callprices[i] = Calln(100, 1, 50, 0.05, 0.05, 0.3, K[i])
+
+  plt.plot(K, callprices, lw=1.5)
+  plt.xlabel('strike price')
+  plt.ylabel('call price')
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS1/callprices.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS1/hedging.png :exports both
+  K = np.arange(80,121,1)
+  thetas = np.zeros(41)
+  for i in range(0,41):
+      thetas[i] = Deltan(100, 1, 50, 0.05, 0.05, 0.3, K[i],1)[0]
+      
+  plt.plot(K, thetas, lw=1.5)
+  plt.xlabel('strike price')
+  plt.ylabel('call hedging strategy')
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS1/hedging.png]]
+
+
+#+BEGIN_SRC ipython :session  :exports both
+  def Call(S0, T, r, sigma, K):
+      d1 = 1/(sigma * np.sqrt(T)) * (np.log(S0/K) + (r+sigma**2/2)*T)
+      d2 = d1 - sigma * np.sqrt(T)
+      return stats.norm.cdf(d1)*S0 - stats.norm.cdf(d2)*K*np.exp(-r*T)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  Call(100, 1, 0.05, 0.3, 80)
+#+END_SRC
+
+#+RESULTS:
+: 26.462085709671783
+
+#+BEGIN_SRC ipython :session  :exports both
+  def err(S0, T, n, r, b, sigma, K):
+      return Calln(S0,T,n,r,b,sigma,K)/Call(S0,T,r,sigma,K) -1
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS1/error.png :exports both
+  errs = np.zeros(100)
+  for n in range(1,100):
+      errs[n] = err(100,1,n,0.05,0.05,0.3,105)
+  plt.plot(np.arange(0,100,1), errs, 'r-', lw=1.5)
+  plt.ylabel('error')
+  plt.xlabel('strike price')
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS1/error.png]]
+

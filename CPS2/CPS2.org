@@ -1,0 +1,67 @@
+#+TITLE: Simulation of the Brownian motion
+#+AUTHOR: Dimitri Lozeve
+#+EMAIL: dimitri.lozeve@polytechnique.edu
+
+#+PROPERTY: header-args :tangle yes
+
+#+BEGIN_SRC ipython :session  :exports both
+  import numpy as np
+  from scipy import stats
+  import matplotlib.pyplot as plt
+  %matplotlib inline
+#+END_SRC
+
+#+RESULTS:
+
+* Forward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)
+
+a) According to the definition of the Brownian motion, \(W_{t_i^n} -
+   W_{t_{i-1}^n} \sim N(0, t_i^n - t_{i-1}^n)\). Thus, there exists a
+   standard normal distributed random variable \(Z_i\) such that
+   \(W_{t_i^n} - W_{t_{i-1}^n} = Z_i \sqrt{\Delta t}\).
+b)   
+   #+BEGIN_SRC ipython :session  :exports both
+     def brownianmotion(T,n):
+         """Returns a Brownian motion of size 2**n, with total time T.
+
+         """
+         # standard normal distributed random variables Z_i
+         z = stats.norm.rvs(size=2**n)
+         w = np.zeros(2**n)
+         var = np.sqrt(T)
+         for i in range(1,2**n):
+             w[i] = w[i-1] + z[i]*var
+         return w
+   #+END_SRC
+
+   #+RESULTS:
+
+   #+BEGIN_SRC ipython :session  :exports both
+     # We compute 1000 copies of the discretized Brownian motion.
+
+     res = np.zeros((1000,2**2))
+     for j in range(0,1000):
+         res[j] = brownianmotion(1,2)
+     res
+   #+END_SRC
+
+   #+RESULTS:
+   : array([[ 0.        ,  0.35166842,  1.01961366,  0.08175838],
+   :        [ 0.        , -1.41339754, -1.50614036, -1.72495577],
+   :        [ 0.        ,  0.66137534, -0.10501629, -0.65861348],
+   :        ..., 
+   :        [ 0.        ,  0.87813399,  1.28347961,  0.01600808],
+   :        [ 0.        , -0.40650066, -0.28290752,  0.49698145],
+   :        [ 0.        , -1.03385094, -1.43133402, -0.90229095]])
+
+c) 
+   #+BEGIN_SRC ipython :session  :exports both :results output
+     print("Mean of W_T:", np.mean(res[:,-1]))
+     print("Variance of W_T:", np.var(res[:,-1]))
+   #+END_SRC
+
+   #+RESULTS:
+   : Mean of W_T: -0.0162955473505
+   : Variance of W_T: 3.04996007246
+
+   

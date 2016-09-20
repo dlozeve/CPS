@@ -7,7 +7,10 @@
 #+BEGIN_SRC ipython :session  :exports both
   import numpy as np
   from scipy import stats
+  import matplotlib
+  matplotlib.use("Qt5Agg")
   import matplotlib.pyplot as plt
+  plt.style.use("ggplot")
   %matplotlib inline
 #+END_SRC
 
@@ -15,53 +18,115 @@
 
 * Forward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)
 
-a) According to the definition of the Brownian motion, \(W_{t_i^n} -
-   W_{t_{i-1}^n} \sim N(0, t_i^n - t_{i-1}^n)\). Thus, there exists a
-   standard normal distributed random variable \(Z_i\) such that
-   \(W_{t_i^n} - W_{t_{i-1}^n} = Z_i \sqrt{\Delta t}\).
-b)   
-   #+BEGIN_SRC ipython :session  :exports both
-     def brownianmotion(T,n):
-         """Returns a Brownian motion of size 2**n, with total time T.
-
-         """
-         # standard normal distributed random variables Z_i
-         z = stats.norm.rvs(size=2**n)
-         w = np.zeros(2**n)
-         var = np.sqrt(2**(-n) * T)
-         for i in range(1,2**n):
-             w[i] = w[i-1] + z[i]*var
-         return w
-   #+END_SRC
-
-   #+RESULTS:
-
-   #+BEGIN_SRC ipython :session  :exports both
-     # We compute 1000 copies of the discretized Brownian motion.
-
-     res = np.zeros((1000,2**2))
-     for j in range(0,1000):
-         res[j] = brownianmotion(1,2)
-     res
-   #+END_SRC
-
-   #+RESULTS:
-   : array([[ 0.        ,  0.35166842,  1.01961366,  0.08175838],
-   :        [ 0.        , -1.41339754, -1.50614036, -1.72495577],
-   :        [ 0.        ,  0.66137534, -0.10501629, -0.65861348],
-   :        ..., 
-   :        [ 0.        ,  0.87813399,  1.28347961,  0.01600808],
-   :        [ 0.        , -0.40650066, -0.28290752,  0.49698145],
-   :        [ 0.        , -1.03385094, -1.43133402, -0.90229095]])
-
-c) 
-   #+BEGIN_SRC ipython :session  :exports both :results output
-     print("Mean of W_T:", np.mean(res[:,-1]))
-     print("Variance of W_T:", np.var(res[:,-1]))
-   #+END_SRC
-
-   #+RESULTS:
-   : Mean of W_T: -0.0162955473505
-   : Variance of W_T: 3.04996007246
-
+According to the definition of the Brownian motion, \(W_{t_i^n} -
+W_{t_{i-1}^n} \sim N(0, t_i^n - t_{i-1}^n)\). Thus, there exists a
+standard normal distributed random variable \(Z_i\) such that
+\(W_{t_i^n} - W_{t_{i-1}^n} = Z_i \sqrt{\Delta t}\).
    
+#+BEGIN_SRC ipython :session  :exports both
+  def brownianmotion(T,n):
+      """Returns a Brownian motion of size 2**n, with total time T.
+      
+      """
+      # standard normal distributed random variables Z_i
+      z = stats.norm.rvs(size=2**n)
+      w = np.zeros(2**n)
+      var = np.sqrt(2**(-n) * T)
+      for i in range(1,2**n):
+          w[i] = w[i-1] + z[i]*var
+      return w
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  # We compute 1000 copies of the discretized Brownian motion.
+
+  res = np.zeros((1000,2**2))
+  for j in range(0,1000):
+      res[j] = brownianmotion(1,2)
+  res
+#+END_SRC
+
+#+RESULTS:
+: array([[ 0.        ,  0.15967848,  0.00688999, -0.21657183],
+:        [ 0.        ,  0.3307148 ,  0.74921226,  0.98281869],
+:        [ 0.        , -0.53972834, -1.13746164, -0.69672884],
+:        ..., 
+:        [ 0.        ,  0.41093333,  0.20413795,  0.6734345 ],
+:        [ 0.        , -0.03827343,  0.32871721,  0.06598891],
+:        [ 0.        ,  0.25329689,  0.70282855,  0.55940345]])
+
+
+#+BEGIN_SRC ipython :session  :exports both :results output
+  print("E(W_T) =", np.mean(res[:,-1]))
+  print("Var(W_T) =", np.var(res[:,-1]))
+  print("Cov(W_T/2, W_T) =", np.cov(res[:,2**2/2], res[:,-1])[1,1])
+#+END_SRC
+
+#+RESULTS:
+: E(W_T) = 0.0365886030873
+: Var(W_T) = 0.660963112474
+: Cov(W_T/2, W_T) = 0.661624737211
+
+#+BEGIN_SRC ipython :session :exports both
+  def meanvarcov(n, m):
+      """Returns the sample mean and variance of W_T and covariance of
+      W_T/2, W_T, using a Brownian motion of size 2**n and a sample of
+      size m.
+
+      """
+      res = np.zeros((m,2**n))
+      for j in range(0,m):
+          res[j] = brownianmotion(1,n)
+      mean = np.mean(res[:,-1])
+      var = np.var(res[:,-1])
+      cov = np.cov(res[:,2**n/2], res[:,-1])[1,1]
+      return mean, var, cov
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  mean = np.zeros(15)
+  var = np.zeros(15)
+  cov = np.zeros(15)
+  for n in range(0,15):
+      mean[n], var[n], cov[n] = meanvarcov(n, 1000)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py526Gxt.png :exports both
+  plt.plot(mean)
+  plt.xlabel("n")
+  plt.ylabel("Mean")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py526Gxt.png]]
+   
+We can see on the plot that the mean remains very close to zero, as
+expected, since \(W_T\) follows a centered normal distribution.
+
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py526_Bu.png :exports both
+  plt.plot(var)
+  plt.xlabel("n")
+  plt.ylabel("Variance")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py526_Bu.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py526MTo.png :exports both
+  plt.plot(cov)
+  plt.xlabel("n")
+  plt.ylabel("Covariance")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py526MTo.png]]
+
+As expected from theoretical results, the variance and covariance of
+the Brownian motion tend to $T$ when $n$ goes to $+\infty$.

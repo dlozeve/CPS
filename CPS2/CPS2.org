@@ -3,6 +3,7 @@
 #+EMAIL: dimitri.lozeve@polytechnique.edu
 
 #+PROPERTY: header-args :tangle yes
+#+HTML_MATHJAX:  path:"http://cdn.mathjax.org/mathjax/latest/MathJax.js"
 
 #+BEGIN_SRC ipython :session  :exports both
   import numpy as np
@@ -49,13 +50,13 @@ standard normal distributed random variable \(Z_i\) such that
 #+END_SRC
 
 #+RESULTS:
-: array([[ 0.        ,  0.15967848,  0.00688999, -0.21657183],
-:        [ 0.        ,  0.3307148 ,  0.74921226,  0.98281869],
-:        [ 0.        , -0.53972834, -1.13746164, -0.69672884],
+: array([[ 0.        ,  0.18927533, -0.69478549, -1.61370099],
+:        [ 0.        , -0.42221717, -0.83084678, -0.5598587 ],
+:        [ 0.        , -0.72090478, -0.05071697, -0.00657082],
 :        ..., 
-:        [ 0.        ,  0.41093333,  0.20413795,  0.6734345 ],
-:        [ 0.        , -0.03827343,  0.32871721,  0.06598891],
-:        [ 0.        ,  0.25329689,  0.70282855,  0.55940345]])
+:        [ 0.        ,  0.64648926,  0.9430492 ,  1.39470021],
+:        [ 0.        ,  0.19206339,  1.30919734,  1.22523421],
+:        [ 0.        , -0.10462534, -0.3285888 ,  1.02700974]])
 
 
 #+BEGIN_SRC ipython :session  :exports both :results output
@@ -65,9 +66,9 @@ standard normal distributed random variable \(Z_i\) such that
 #+END_SRC
 
 #+RESULTS:
-: E(W_T) = 0.0365886030873
-: Var(W_T) = 0.660963112474
-: Cov(W_T/2, W_T) = 0.661624737211
+: E(W_T) = -0.0121066509394
+: Var(W_T) = 0.741486188109
+: Cov(W_T/2, W_T) = 0.742228416525
 
 #+BEGIN_SRC ipython :session :exports both
   def meanvarcov(n, m):
@@ -88,10 +89,10 @@ standard normal distributed random variable \(Z_i\) such that
 #+RESULTS:
 
 #+BEGIN_SRC ipython :session :exports both
-  mean = np.zeros(15)
-  var = np.zeros(15)
-  cov = np.zeros(15)
-  for n in range(0,15):
+  mean = np.zeros(12)
+  var = np.zeros(12)
+  cov = np.zeros(12)
+  for n in range(0,12):
       mean[n], var[n], cov[n] = meanvarcov(n, 1000)
 #+END_SRC
 
@@ -130,3 +131,37 @@ expected, since \(W_T\) follows a centered normal distribution.
 
 As expected from theoretical results, the variance and covariance of
 the Brownian motion tend to $T$ when $n$ goes to $+\infty$.
+
+
+* Backward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)
+
+Let \(\bar{s} = \frac{s_1+s_2}{2}.\) Let us compute the Laplace
+transform of \(W_\bar{s} \;|\; W_{s_1} = x_1, W_{s_2} = x_2.\)
+
+\begin{align*}
+\mathbb{E}\left(e^{u W_{\bar{s}}} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right)
+&= \mathbb{E}\left(e^{u \left(W_{\bar{s}} - \frac{W_{s_1} + W_{s_2}}{2}\right)} e^{u \frac{W_{s_1} + W_{s_2}}{2}} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right) \\
+&= e^{u \frac{x_1+x_2}{2}} \mathbb{E}\left(e^{u \left(W_{\bar{s}} - \frac{W_{s_1} + W_{s_2}}{2}\right)} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right) \\
+&= e^{u \bar{x}} \mathbb{E}\left(\exp\left(\frac{1}{2}u\left(W_\bar{s}-W_{s_1}\right)\right) \exp\left(-\frac{1}{2}u\left(W_{s_2}-W_\bar{s}\right)\right)\right)
+\end{align*}
+
+\(W_\bar{s}-W_{s_1}\) and \(W_{s_2}-W_\bar{s}\) are independant:
+
+\begin{align*}
+\mathbb{E}\left(e^{u W_{\bar{s}}} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right)
+&= e^{u \bar{x}} \exp\left(\frac{1}{2} \left(\bar{s}-s_1\right)^2 \left(\frac{u}{2}\right)^2\right) \exp\left(\frac{1}{2} \left(s_2-\bar{s}\right)^2 \left(\frac{u}{2}\right)^2\right) \\
+&= e^{u \bar{x}} \exp\left(\frac{u^2}{8} \left[\left(\frac{s_2-s_1}{2}\right)^2 + \left(\frac{s_2-s_1}{2}\right)^2\right]\right) \\
+&= e^{u \bar{x}} e^{\frac{u^2}{16}\left(\frac{s_2-s_1}{2}\right)^2}.
+\end{align*}
+
+So the variable \(W_\bar{s} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\) is
+distributed along a normal distribution \(\mathcal{N}\left(\bar{x},
+\frac{s_2-s_1}{4}\right).\)
+
+The steps above also show that the random variable is independant from
+\((W_u)_{u\notin [s_1,s_2]}.\)
+
+#+BEGIN_SRC ipython :session :exports both
+
+#+END_SRC
+

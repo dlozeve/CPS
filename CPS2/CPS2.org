@@ -82,7 +82,7 @@ standard normal distributed random variable \(Z_i\) such that
           res[j] = brownianmotion(1,n)
       mean = np.mean(res[:,-1])
       var = np.var(res[:,-1])
-      cov = np.cov(res[:,2**n/2], res[:,-1])[1,1]
+      cov = np.cov(res[:,2**n/2], res[:,-1])[0,1]
       return mean, var, cov
 #+END_SRC
 
@@ -162,6 +162,79 @@ The steps above also show that the random variable is independant from
 \((W_u)_{u\notin [s_1,s_2]}.\)
 
 #+BEGIN_SRC ipython :session :exports both
+  def completebrownian(a, dt):
+      n = len(a)
+      if n > 2:
+          loc = (a[0]+a[-1])/2
+          scale = dt/4
+          a[n/2] = stats.norm.rvs(loc = loc, scale = scale)
+          completebrownian(a[:n/2+1],dt/2)
+          completebrownian(a[n/2:],dt/2)
 
+  def backwardbrownian(T, n, m):
+      res = np.zeros((m,2**n+1))
+      res[:,-1] = stats.norm.rvs(size=m, scale=T)
+      for j in range(0,m):
+          completebrownian(res[j],T)
+      return res
 #+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  def backwardmeanvarcov(n, m):
+      """Returns the sample mean and variance of W_T and covariance of
+      W_T/2, W_T, using a Brownian motion of size 2**n and a sample of
+      size m.
+
+      """
+      res = backwardbrownian(1,n,m)
+      mean = np.mean(res[:,-1])
+      var = np.var(res[:,-1])
+      cov = np.cov(res[:,2**n/2], res[:,-1])[1,1]
+      return mean, var, cov
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  mean = np.zeros(10)
+  var = np.zeros(10)
+  cov = np.zeros(10)
+  for n in range(0,10):
+      mean[n], var[n], cov[n] = backwardmeanvarcov(n, 1000)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645MyG.png :exports both
+  plt.plot(mean)
+  plt.xlabel("n")
+  plt.ylabel("Mean")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645MyG.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645BVy.png :exports both
+  plt.plot(var)
+  plt.xlabel("x")
+  plt.ylabel("Variance")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645BVy.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645oBt.png :exports both
+  plt.plot(cov)
+  plt.xlabel("x")
+  plt.ylabel("Covariance")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645oBt.png]]
+
+
+
+* Quadratic variation of the Brownian motion
 

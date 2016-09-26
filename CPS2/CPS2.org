@@ -50,13 +50,13 @@ standard normal distributed random variable \(Z_i\) such that
 #+END_SRC
 
 #+RESULTS:
-: array([[ 0.        ,  0.18927533, -0.69478549, -1.61370099],
-:        [ 0.        , -0.42221717, -0.83084678, -0.5598587 ],
-:        [ 0.        , -0.72090478, -0.05071697, -0.00657082],
+: array([[ 0.        , -0.21851101, -0.21539219,  0.40542654],
+:        [ 0.        , -0.61701768, -0.77283467, -0.52483737],
+:        [ 0.        ,  0.11518289, -0.38252224, -0.15561293],
 :        ..., 
-:        [ 0.        ,  0.64648926,  0.9430492 ,  1.39470021],
-:        [ 0.        ,  0.19206339,  1.30919734,  1.22523421],
-:        [ 0.        , -0.10462534, -0.3285888 ,  1.02700974]])
+:        [ 0.        , -0.0730131 , -0.19037804, -1.09011073],
+:        [ 0.        , -1.380062  , -1.34953524, -0.99794872],
+:        [ 0.        ,  0.16245951,  0.00819049,  0.16044107]])
 
 
 #+BEGIN_SRC ipython :session  :exports both :results output
@@ -66,9 +66,9 @@ standard normal distributed random variable \(Z_i\) such that
 #+END_SRC
 
 #+RESULTS:
-: E(W_T) = -0.0121066509394
-: Var(W_T) = 0.741486188109
-: Cov(W_T/2, W_T) = 0.742228416525
+: E(W_T) = 0.0323480028438
+: Var(W_T) = 0.684192698955
+: Cov(W_T/2, W_T) = 0.684877576532
 
 #+BEGIN_SRC ipython :session :exports both
   def meanvarcov(n, m):
@@ -163,6 +163,10 @@ The steps above also show that the random variable is independant from
 
 #+BEGIN_SRC ipython :session :exports both
   def completebrownian(a, dt):
+      """Completes a brownian motion, given its to extremities and the time
+      difference.
+
+      """
       n = len(a)
       if n > 2:
           loc = (a[0]+a[-1])/2
@@ -171,11 +175,13 @@ The steps above also show that the random variable is independant from
           completebrownian(a[:n/2+1],dt/2)
           completebrownian(a[n/2:],dt/2)
 
-  def backwardbrownian(T, n, m):
-      res = np.zeros((m,2**n+1))
-      res[:,-1] = stats.norm.rvs(size=m, scale=T)
-      for j in range(0,m):
-          completebrownian(res[j],T)
+  def backwardbrownian(T, n):
+      """Returns a Brownian motion of size 2**n, using backward simulation.
+
+      """
+      res = np.zeros(2**n)
+      res[-1] = stats.norm.rvs(scale=T)
+      completebrownian(res,T)
       return res
 #+END_SRC
 
@@ -188,10 +194,12 @@ The steps above also show that the random variable is independant from
       size m.
 
       """
-      res = backwardbrownian(1,n,m)
+      res = np.zeros((m,2**n))
+      for j in range(0,m):
+          res[j] = backwardbrownian(1,n)
       mean = np.mean(res[:,-1])
       var = np.var(res[:,-1])
-      cov = np.cov(res[:,2**n/2], res[:,-1])[1,1]
+      cov = np.cov(res[:,2**n/2], res[:,-1])[0,1]
       return mean, var, cov
 #+END_SRC
 
@@ -237,4 +245,56 @@ The steps above also show that the random variable is independant from
 
 
 * Quadratic variation of the Brownian motion
+
+#+BEGIN_SRC ipython :session :exports both
+  def quadraticvariation(bm):
+      """Computes the quadratic variation of a given Brownian motion on its
+      whole life.
+
+      """
+      m = len(bm)
+      res = 0
+      for i in range(m):
+          res += (bm[i] - bm[i-1])**2
+      return res
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  m = 1000
+  T = 1
+
+  qv_forward = np.zeros(10)
+  qv_backward = np.zeros(10)
+
+  for n in range(10):
+      for j in range(m):
+          qv_forward[n] += quadraticvariation(brownianmotion(T,n))
+      qv_forward[n] /= m
+
+      for j in range(m):
+          qv_backward[n] += quadraticvariation(backwardbrownian(T,n))
+      qv_backward[n] /= m
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py1364561E.png :exports both
+  plt.plot(qv_forward)
+  plt.xlabel("n")
+  plt.ylabel("Quadratic variance (forward simulation)")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py1364561E.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645vfk.png :exports both
+  plt.plot(qv_backward)
+  plt.xlabel("n")
+  plt.ylabel("Quadratic variance (backward simulation)")
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645vfk.png]]
 

@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Simulation of the Brownian motion</title>
+<!-- 2016-09-26 Mon 15:35 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Dimitri Lozeve" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Simulation of the Brownian motion</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Forward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)</a></li>
+<li><a href="#sec-2">2. Backward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)</a></li>
+<li><a href="#sec-3">3. Quadratic variation of the Brownian motion</a></li>
+</ul>
+</div>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">import</span> numpy <span style="color: #8ac6f2; font-weight: bold;">as</span> np
+<span style="color: #8ac6f2; font-weight: bold;">from</span> scipy <span style="color: #8ac6f2; font-weight: bold;">import</span> stats
+<span style="color: #8ac6f2; font-weight: bold;">import</span> matplotlib
+matplotlib.use(<span style="color: #95e454;">"Qt5Agg"</span>)
+<span style="color: #8ac6f2; font-weight: bold;">import</span> matplotlib.pyplot <span style="color: #8ac6f2; font-weight: bold;">as</span> plt
+plt.style.use(<span style="color: #95e454;">"ggplot"</span>)
+%matplotlib inline
+</pre>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Forward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+According to the definition of the Brownian motion, \(W_{t_i^n} -
+W_{t_{i-1}^n} \sim N(0, t_i^n - t_{i-1}^n)\). Thus, there exists a
+standard normal distributed random variable \(Z_i\) such that
+\(W_{t_i^n} - W_{t_{i-1}^n} = Z_i \sqrt{\Delta t}\).
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">def</span> <span style="color: #cae682;">brownianmotion</span>(T,n):
+    <span style="color: #95e454;">"""Returns a Brownian motion of size 2**n, with total time T.</span>
+
+<span style="color: #95e454;">    """</span>
+    <span style="color: #99968b;"># </span><span style="color: #99968b;">standard normal distributed random variables Z_i</span>
+    <span style="color: #cae682;">z</span> = stats.norm.rvs(size=2**n)
+    <span style="color: #cae682;">w</span> = np.zeros(2**n)
+    <span style="color: #cae682;">var</span> = np.sqrt(2**(-n) * T)
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> i <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(1,2**n):
+        <span style="color: #cae682;">w</span>[i] = w[i-1] + z[i]*var
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> w
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #99968b;"># </span><span style="color: #99968b;">We compute 1000 copies of the discretized Brownian motion.</span>
+
+<span style="color: #cae682;">res</span> = np.zeros((1000,2**2))
+<span style="color: #8ac6f2; font-weight: bold;">for</span> j <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(0,1000):
+    <span style="color: #cae682;">res</span>[j] = brownianmotion(1,2)
+res
+</pre>
+</div>
+
+<pre class="example">
+array([[ 0.        ,  0.40226265, -0.65054533, -0.47549005],
+       [ 0.        ,  0.26843973,  0.19806781,  0.04927785],
+       [ 0.        , -0.14365234,  0.33742693, -0.07453452],
+       ..., 
+       [ 0.        , -0.41638578, -0.84118967, -1.54889602],
+       [ 0.        , -0.25509058, -0.33149972, -1.01432171],
+       [ 0.        , -0.32785468,  0.17885693,  0.54406972]])
+</pre>
+
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">print</span>(<span style="color: #95e454;">"E(W_T) ="</span>, np.mean(res[:,-1]))
+<span style="color: #8ac6f2; font-weight: bold;">print</span>(<span style="color: #95e454;">"Var(W_T) ="</span>, np.var(res[:,-1]))
+<span style="color: #8ac6f2; font-weight: bold;">print</span>(<span style="color: #95e454;">"Cov(W_T/2, W_T) ="</span>, np.cov(res[:,2**2/2], res[:,-1])[1,1])
+</pre>
+</div>
+
+<pre class="example">
+E(W_T) = 0.0574070088302
+Var(W_T) = 0.739950344017
+Cov(W_T/2, W_T) = 0.740691035052
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">def</span> <span style="color: #cae682;">meanvarcov</span>(n, m):
+    <span style="color: #95e454;">"""Returns the sample mean and variance of W_T and covariance of</span>
+<span style="color: #95e454;">    W_T/2, W_T, using a Brownian motion of size 2**n and a sample of</span>
+<span style="color: #95e454;">    size m.</span>
+
+<span style="color: #95e454;">    """</span>
+    <span style="color: #cae682;">res</span> = np.zeros((m,2**n))
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> j <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(0,m):
+        <span style="color: #cae682;">res</span>[j] = brownianmotion(1,n)
+    <span style="color: #cae682;">mean</span> = np.mean(res[:,-1])
+    <span style="color: #cae682;">var</span> = np.var(res[:,-1])
+    <span style="color: #cae682;">cov</span> = np.cov(res[:,2**n/2], res[:,-1])[0,1]
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> mean, var, cov
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #cae682;">mean</span> = np.zeros(12)
+<span style="color: #cae682;">var</span> = np.zeros(12)
+<span style="color: #cae682;">cov</span> = np.zeros(12)
+<span style="color: #8ac6f2; font-weight: bold;">for</span> n <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(0,12):
+    mean[n], var[n], <span style="color: #cae682;">cov</span>[n] = meanvarcov(n, 1000)
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(mean)
+plt.xlabel(<span style="color: #95e454;">"n"</span>)
+plt.ylabel(<span style="color: #95e454;">"Mean"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py526Gxt.png" alt="py526Gxt.png" />
+</p>
+</div>
+
+<p>
+We can see on the plot that the mean remains very close to zero, as
+expected, since \(W_T\) follows a centered normal distribution.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(var)
+plt.xlabel(<span style="color: #95e454;">"n"</span>)
+plt.ylabel(<span style="color: #95e454;">"Variance"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py526_Bu.png" alt="py526_Bu.png" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(cov)
+plt.xlabel(<span style="color: #95e454;">"n"</span>)
+plt.ylabel(<span style="color: #95e454;">"Covariance"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py526MTo.png" alt="py526MTo.png" />
+</p>
+</div>
+
+<p>
+As expected from theoretical results, the variance and covariance of
+the Brownian motion tend to \(T\) when \(n\) goes to \(+\infty\).
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Backward simulation of \(\{W_{t_1^n}, \cdots, W_{t_n^n}\}\)</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Let \(\bar{s} = \frac{s_1+s_2}{2}.\) Let us compute the Laplace
+transform of \(W_\bar{s} \;|\; W_{s_1} = x_1, W_{s_2} = x_2.\)
+</p>
+
+\begin{align*}
+\mathbb{E}\left(e^{u W_{\bar{s}}} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right)
+&= \mathbb{E}\left(e^{u \left(W_{\bar{s}} - \frac{W_{s_1} + W_{s_2}}{2}\right)} e^{u \frac{W_{s_1} + W_{s_2}}{2}} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right) \\
+&= e^{u \frac{x_1+x_2}{2}} \mathbb{E}\left(e^{u \left(W_{\bar{s}} - \frac{W_{s_1} + W_{s_2}}{2}\right)} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right) \\
+&= e^{u \bar{x}} \mathbb{E}\left(\exp\left(\frac{1}{2}u\left(W_\bar{s}-W_{s_1}\right)\right) \exp\left(-\frac{1}{2}u\left(W_{s_2}-W_\bar{s}\right)\right)\right)
+\end{align*}
+
+<p>
+\(W_\bar{s}-W_{s_1}\) and \(W_{s_2}-W_\bar{s}\) are independant:
+</p>
+
+\begin{align*}
+\mathbb{E}\left(e^{u W_{\bar{s}}} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\right)
+&= e^{u \bar{x}} \exp\left(\frac{1}{2} \left(\bar{s}-s_1\right)^2 \left(\frac{u}{2}\right)^2\right) \exp\left(\frac{1}{2} \left(s_2-\bar{s}\right)^2 \left(\frac{u}{2}\right)^2\right) \\
+&= e^{u \bar{x}} \exp\left(\frac{u^2}{8} \left[\left(\frac{s_2-s_1}{2}\right)^2 + \left(\frac{s_2-s_1}{2}\right)^2\right]\right) \\
+&= e^{u \bar{x}} e^{\frac{u^2}{16}\left(\frac{s_2-s_1}{2}\right)^2}.
+\end{align*}
+
+<p>
+So the variable \(W_\bar{s} \;|\; W_{s_1} = x_1, W_{s_2} = x_2\) is
+distributed along a normal distribution \(\mathcal{N}\left(\bar{x},
+\frac{s_2-s_1}{4}\right).\)
+</p>
+
+<p>
+The steps above also show that the random variable is independant from
+\((W_u)_{u\notin [s_1,s_2]}.\)
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">def</span> <span style="color: #cae682;">completebrownian</span>(a, dt):
+    <span style="color: #95e454;">"""Completes a brownian motion, given its to extremities and the time</span>
+<span style="color: #95e454;">    difference.</span>
+
+<span style="color: #95e454;">    """</span>
+    <span style="color: #cae682;">n</span> = <span style="color: #e5786d;">len</span>(a)
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> n &gt; 2:
+        <span style="color: #cae682;">loc</span> = (a[0]+a[-1])/2
+        <span style="color: #cae682;">scale</span> = dt/4
+        <span style="color: #cae682;">a</span>[n/2] = stats.norm.rvs(loc = loc, scale = scale)
+        completebrownian(a[:n/2+1],dt/2)
+        completebrownian(a[n/2:],dt/2)
+
+<span style="color: #8ac6f2; font-weight: bold;">def</span> <span style="color: #cae682;">backwardbrownian</span>(T, n):
+    <span style="color: #95e454;">"""Returns a Brownian motion of size 2**n, using backward simulation.</span>
+
+<span style="color: #95e454;">    """</span>
+    <span style="color: #cae682;">res</span> = np.zeros(2**n)
+    <span style="color: #cae682;">res</span>[-1] = stats.norm.rvs(scale=T)
+    completebrownian(res,T)
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> res
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">def</span> <span style="color: #cae682;">backwardmeanvarcov</span>(n, m):
+    <span style="color: #95e454;">"""Returns the sample mean and variance of W_T and covariance of</span>
+<span style="color: #95e454;">    W_T/2, W_T, using a Brownian motion of size 2**n and a sample of</span>
+<span style="color: #95e454;">    size m.</span>
+
+<span style="color: #95e454;">    """</span>
+    <span style="color: #cae682;">res</span> = np.zeros((m,2**n))
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> j <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(0,m):
+        <span style="color: #cae682;">res</span>[j] = backwardbrownian(1,n)
+    <span style="color: #cae682;">mean</span> = np.mean(res[:,-1])
+    <span style="color: #cae682;">var</span> = np.var(res[:,-1])
+    <span style="color: #cae682;">cov</span> = np.cov(res[:,2**n/2], res[:,-1])[0,1]
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> mean, var, cov
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #cae682;">mean</span> = np.zeros(10)
+<span style="color: #cae682;">var</span> = np.zeros(10)
+<span style="color: #cae682;">cov</span> = np.zeros(10)
+<span style="color: #8ac6f2; font-weight: bold;">for</span> n <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(0,10):
+    mean[n], var[n], <span style="color: #cae682;">cov</span>[n] = backwardmeanvarcov(n, 1000)
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(mean)
+plt.xlabel(<span style="color: #95e454;">"n"</span>)
+plt.ylabel(<span style="color: #95e454;">"Mean"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645MyG.png" alt="py13645MyG.png" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(var)
+plt.xlabel(<span style="color: #95e454;">"x"</span>)
+plt.ylabel(<span style="color: #95e454;">"Variance"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645BVy.png" alt="py13645BVy.png" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(cov)
+plt.xlabel(<span style="color: #95e454;">"x"</span>)
+plt.ylabel(<span style="color: #95e454;">"Covariance"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645oBt.png" alt="py13645oBt.png" />
+</p>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Quadratic variation of the Brownian motion</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #8ac6f2; font-weight: bold;">def</span> <span style="color: #cae682;">quadraticvariation</span>(bm):
+    <span style="color: #95e454;">"""Computes the quadratic variation of a given Brownian motion on its</span>
+<span style="color: #95e454;">    whole life.</span>
+
+<span style="color: #95e454;">    """</span>
+    <span style="color: #cae682;">m</span> = <span style="color: #e5786d;">len</span>(bm)
+    <span style="color: #cae682;">res</span> = 0
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> i <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(m):
+        <span style="color: #cae682;">res</span> += (bm[i] - bm[i-1])**2
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> res
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython"><span style="color: #cae682;">m</span> = 1000
+<span style="color: #cae682;">T</span> = 1
+
+<span style="color: #cae682;">qv_forward</span> = np.zeros(10)
+<span style="color: #cae682;">qv_backward</span> = np.zeros(10)
+
+<span style="color: #8ac6f2; font-weight: bold;">for</span> n <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(10):
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> j <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(m):
+        <span style="color: #cae682;">qv_forward</span>[n] += quadraticvariation(brownianmotion(T,n))
+    <span style="color: #cae682;">qv_forward</span>[n] /= m
+
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> j <span style="color: #8ac6f2; font-weight: bold;">in</span> <span style="color: #e5786d;">range</span>(m):
+        <span style="color: #cae682;">qv_backward</span>[n] += quadraticvariation(backwardbrownian(T,n))
+    <span style="color: #cae682;">qv_backward</span>[n] /= m
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(qv_forward)
+plt.xlabel(<span style="color: #95e454;">"n"</span>)
+plt.ylabel(<span style="color: #95e454;">"Quadratic variance (forward simulation)"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py1364561E.png" alt="py1364561E.png" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-ipython">plt.plot(qv_backward)
+plt.xlabel(<span style="color: #95e454;">"n"</span>)
+plt.ylabel(<span style="color: #95e454;">"Quadratic variance (backward simulation)"</span>)
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="file:///home/dimitri/cours/3A/MAP552/CPS/CPS2/py13645vfk.png" alt="py13645vfk.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Dimitri Lozeve</p>
+<p class="date">Created: 2016-09-26 Mon 15:35</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.1.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

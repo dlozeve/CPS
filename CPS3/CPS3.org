@@ -1,0 +1,105 @@
+#+TITLE: CPS3: Simulation of the Brownian motion
+#+AUTHOR: Dimitri Lozeve
+#+EMAIL: dimitri.lozeve@polytechnique.edu
+
+#+PROPERTY: header-args :tangle yes
+#+HTML_MATHJAX:  path:"http://cdn.mathjax.org/mathjax/latest/MathJax.js"
+
+
+#+BEGIN_SRC ipython :session  :exports both
+  import numpy as np
+  from scipy import stats
+  import matplotlib
+  matplotlib.use("Qt5Agg")
+  import matplotlib.pyplot as plt
+  plt.style.use("ggplot")
+  %matplotlib inline
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session  :exports both
+  def brownianmotion(T,n):
+      """Returns a Brownian motion of size 2**n, with total time T.
+      
+      """
+      # standard normal distributed random variables Z_i
+      z = stats.norm.rvs(size=2**n)
+      w = np.zeros(2**n)
+      var = np.sqrt(2**(-n) * T)
+      for i in range(1,2**n):
+          w[i] = w[i-1] + z[i]*var
+      return w
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  def I(bm):
+      delta = bm[1:] - bm[:-1]
+      return delta.dot(bm[:-1])
+
+  def J(bm):
+      delta = bm[1:] - bm[:-1]
+      return delta.dot(bm[1:])
+
+  def K(bm):
+      delta = bm[1:] - bm[:-1]
+      return delta.dot((bm[:-1] + bm[1:])/2)
+
+  def halfsquared(bm):
+      return bm.dot(bm) * 0.5
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  # We compute N copies of the discretized Brownian motion.
+
+  N = 10000
+  n = 10
+
+  res = np.zeros((N,2**n))
+  for j in range(N):
+      res[j] = brownianmotion(1,n)
+  res
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+array([[  0.00000000e+00,   1.29074345e-02,  -2.86551640e-02, ...,
+         -3.90804182e-01,  -4.32564796e-01,  -4.38034249e-01],
+       [  0.00000000e+00,  -7.92010833e-04,  -4.41197536e-03, ...,
+         -9.80683652e-01,  -9.53228765e-01,  -9.23358290e-01],
+       [  0.00000000e+00,  -1.29733305e-02,   2.81185090e-03, ...,
+         -5.97924391e-01,  -5.90568412e-01,  -5.67538296e-01],
+       ..., 
+       [  0.00000000e+00,  -5.72723504e-03,   2.12530644e-02, ...,
+          8.65478014e-01,   8.61241591e-01,   9.30855402e-01],
+       [  0.00000000e+00,   5.02779418e-02,   3.07268315e-02, ...,
+          1.63864106e-01,   1.97903980e-01,   2.04822622e-01],
+       [  0.00000000e+00,   3.74767123e-03,  -4.74079689e-02, ...,
+         -9.47153268e-01,  -9.46223522e-01,  -9.75758299e-01]])
+#+end_example
+
+#+BEGIN_SRC ipython :session :exports both
+  isample = np.apply_along_axis(I, 1, res)
+  jsample = np.apply_along_axis(J, 1, res)
+  ksample = np.apply_along_axis(K, 1, res)
+
+  hssample = np.apply_along_axis(halfsquared, 1, res)
+
+  isample = hssample - isample
+  jsample = hssample - jsample
+  ksample = hssample - ksample
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  isample.mean(), jsample.mean(), ksample.mean()
+#+END_SRC
+
+#+RESULTS:
+| 254.96886869383454 | 253.96951535290145 | 254.46919202336795 |
+

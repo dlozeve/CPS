@@ -200,3 +200,35 @@ plt.plot(res[2])
 #+RESULTS:
 [[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/cmean.png]]
 
+
+#+BEGIN_SRC ipython :session :exports both
+  def newa(bm):
+      length = len(bm)
+      return np.sin(bm[-1]) - np.sum(np.sin(bm[:-1]))/(length*2)
+
+  def samplemeana(N, n):
+      bms = np.zeros((N,2**n))
+      for j in range(N):
+          bms[j] = brownianmotion(1,n)
+      sample = np.apply_along_axis(newa, 1, bms)
+      return sample.mean()
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  N = 1000
+  res = np.zeros((10,3))
+  for n in range(10):
+      res[n] = samplemeana(N,n+10)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/agraph.png :exports both
+  plt.plot(res)
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/agraph.png]]
+

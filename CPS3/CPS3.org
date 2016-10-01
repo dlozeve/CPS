@@ -54,52 +54,71 @@
 #+RESULTS:
 
 #+BEGIN_SRC ipython :session :exports both
-  # We compute N copies of the discretized Brownian motion.
+  def approximationsijk(N, n):
+      """Creates a sample of N copies of the random variables 1/2*W_T^2 -
+      I_n, 1/2*W_T^2 - J_n, and 1/2*W_T^2 - K_n, and returns their
+      sample means.
 
-  N = 10000
-  n = 10
+      """
+      # We generate N Brownian motions of length 2**n.
+      bms = np.zeros((N,2**n))
+      for j in range(N):
+          bms[j] = brownianmotion(1,n)
+      # Then we compute the quantities I, J, and K.
+      isample = np.apply_along_axis(I, 1, bms)
+      jsample = np.apply_along_axis(J, 1, bms)
+      ksample = np.apply_along_axis(K, 1, bms)
+      hssample = np.apply_along_axis(halfsquared, 1, bms)
+      isample = hssample - isample
+      jsample = hssample - jsample
+      ksample = hssample - ksample
+      return [isample.mean(), jsample.mean(), ksample.mean()]
+#+END_SRC
 
-  res = np.zeros((N,2**n))
-  for j in range(N):
-      res[j] = brownianmotion(1,n)
-  res
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  N = 1000
+  res = np.zeros((10, 3))
+  for n in range(10):
+      res[n] = approximationsijk(N, n+10)
+  res = res.transpose()
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-array([[ 0.        ,  0.06055285,  0.04914129, ...,  1.44096105,
-         1.46685729,  1.46481259],
-       [ 0.        ,  0.04663562,  0.06259768, ...,  1.59509701,
-         1.61429274,  1.64867964],
-       [ 0.        ,  0.02147185,  0.01613599, ..., -1.09182284,
-        -1.11204257, -1.09507843],
-       ..., 
-       [ 0.        ,  0.00713491,  0.0288439 , ..., -0.17145026,
-        -0.19826358, -0.2184908 ],
-       [ 0.        , -0.0364723 , -0.02026647, ..., -0.18797628,
-        -0.23196186, -0.23083612],
-       [ 0.        ,  0.06385073,  0.09368815, ...,  0.97507075,
-         0.97686936,  0.98648747]])
+array([[  4.98743594e-01,   4.99522292e-01,   5.00143890e-01,
+          5.00270365e-01,   4.99932691e-01,   5.00003248e-01,
+          4.99962700e-01,   4.99999468e-01,   5.00006155e-01,
+          5.00011635e-01],
+       [ -4.98743594e-01,  -4.99522292e-01,  -5.00143890e-01,
+         -5.00270365e-01,  -4.99932691e-01,  -5.00003248e-01,
+         -4.99962700e-01,  -4.99999468e-01,  -5.00006155e-01,
+         -5.00011635e-01],
+       [ -1.89112147e-18,   1.17920878e-17,   2.05272263e-17,
+          2.55972346e-18,  -6.55839226e-18,  -3.47130894e-18,
+          3.29931778e-17,   1.25803546e-16,  -4.45692066e-17,
+          8.25997317e-17]])
 #+end_example
 
-#+BEGIN_SRC ipython :session :exports both
-  isample = np.apply_along_axis(I, 1, res)
-  jsample = np.apply_along_axis(J, 1, res)
-  ksample = np.apply_along_axis(K, 1, res)
-
-  hssample = np.apply_along_axis(halfsquared, 1, res)
-
-  isample = hssample - isample
-  jsample = hssample - jsample
-  ksample = hssample - ksample
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/imean.png :exports both
+  plt.plot(res[0])
 #+END_SRC
 
 #+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/imean.png]]
 
-#+BEGIN_SRC ipython :session :exports both
-  isample.mean(), jsample.mean(), ksample.mean()
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/jmean.png :exports both
+  plt.plot(res[1])
 #+END_SRC
 
 #+RESULTS:
-| 0.49993753315459233 | -0.49993753315459233 | 5.751815290425827e-19 |
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/jmean.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/kmean.png :exports both
+  plt.plot(res[2])
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/kmean.png]]
 

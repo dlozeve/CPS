@@ -122,3 +122,81 @@ array([[  4.98743594e-01,   4.99522292e-01,   5.00143890e-01,
 #+RESULTS:
 [[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/kmean.png]]
 
+
+#+BEGIN_SRC ipython :session :exports both
+  def A(bm):
+      length = len(bm)
+      delta = bm[1:] - bm[:-1]
+      expn = np.exp(np.arange(length)/length)
+      return delta.dot(expn[:-1])
+
+  def B(bm):
+      length = len(bm)
+      delta = bm[1:] - bm[:-1]
+      expn = np.exp(np.arange(length)/length)
+      return delta.dot(expn[1:])
+
+  def C(bm):
+      length = len(bm)
+      delta = bm[1:] - bm[:-1]
+      expn = np.exp(np.arange(length)/length)
+      return delta.dot((expn[:-1]+expn[1:])/2)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  def approximationsabc(N, n):
+      """Creates a sample of N copies of the random variables 1/2*W_T^2 -
+      A_n, 1/2*W_T^2 - B_n, and 1/2*W_T^2 - C_n, and returns their
+      sample means.
+      
+      """
+      # We generate N Brownian motions of length 2**n.
+      bms = np.zeros((N,2**n))
+      for j in range(N):
+          bms[j] = brownianmotion(1,n)
+      # Then we compute the quantities I, J, and K.
+      asample = np.apply_along_axis(A, 1, bms)
+      bsample = np.apply_along_axis(B, 1, bms)
+      csample = np.apply_along_axis(C, 1, bms)
+      hssample = np.apply_along_axis(halfsquared, 1, bms)
+      asample = hssample - asample
+      bsample = hssample - bsample
+      csample = hssample - csample
+      return [asample.mean(), bsample.mean(), csample.mean()]
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :exports both
+  N = 1000
+  res = np.zeros((10, 3))
+  for n in range(10):
+      res[n] = approximationsabc(N, n+10)
+  res = res.transpose()
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/amean.png :exports both
+  plt.plot(res[0])
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/amean.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/bmean.png :exports both
+  plt.plot(res[1])
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/bmean.png]]
+
+#+BEGIN_SRC ipython :session :file /home/dimitri/cours/3A/MAP552/CPS/CPS3/cmean.png :exports both
+plt.plot(res[2])
+#+END_SRC
+
+#+RESULTS:
+[[file:/home/dimitri/cours/3A/MAP552/CPS/CPS3/cmean.png]]
+
